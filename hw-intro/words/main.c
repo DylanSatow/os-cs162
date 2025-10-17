@@ -45,9 +45,10 @@ WordCount *word_counts = NULL;
  * Useful functions: fgetc(), isalpha().
  */
 int num_words(FILE* infile) {
-  int num_words = 0;
-
-  return num_words;
+  char c;
+  while ((c = fgetc(infile)) != EOF) {
+    if c 
+  }
 }
 
 /*
