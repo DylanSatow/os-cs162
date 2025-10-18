@@ -56,7 +56,9 @@ int num_words(FILE* infile) {
       word_len = 0;      
     }
   }
-  return word_len;
+  // If we end without white space
+  if(word_len > 0) counts += 1;
+  return counts;
 }
 
 /*
@@ -79,6 +81,7 @@ int count_words(WordCount **wclist, FILE *infile) {
  * Useful function: strcmp().
  */
 static bool wordcount_less(const WordCount *wc1, const WordCount *wc2) {
+    
   return 0;
 }
 
@@ -142,6 +145,7 @@ int main (int argc, char *argv[]) {
   if ((argc - optind) < 1) {
     // No input file specified, instead, read from STDIN instead.
     infile = stdin;
+    total_words = num_words(infile);
   } else {
     // At least one file specified. Useful functions: fopen(), fclose().
     // The first file can be found at argv[optind]. The last file can be
