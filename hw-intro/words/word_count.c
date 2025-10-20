@@ -21,7 +21,6 @@ Mutators take a reference to a list as first arg.
 */
 
 #include "word_count.h"
-#include <cstring>
 #include <string.h>
 
 /* Basic utilities */
@@ -39,9 +38,14 @@ int init_words(WordCount **wclist) {
      Returns 0 if no errors are encountered
      in the body of this function; 1 otherwise.
   */
-  // *wclist = NULL;
-  WordCount init = {NULL, 0, NULL};
-  *wclist = &init;
+  WordCount *init = malloc(sizeof(WordCount));
+  if(init == NULL) {
+    return 1;
+  }
+  init -> word = NULL;
+  init -> next = NULL;
+  init -> count = 0;
+  *wclist = init;
   return 0;
 }
 
@@ -53,8 +57,10 @@ ssize_t len_words(WordCount *wchead) {
   WordCount *curr = wchead;
   size_t len = 0;
   while(curr != NULL) {
-    curr = curr -> next;
-    len += strlen(curr -> word);
+    if(curr->word != NULL) {
+      len += strlen(curr->word);
+    }
+    curr = curr->next;
   }
   return len;
 }
@@ -63,10 +69,10 @@ WordCount *find_word(WordCount *wchead, char *word) {
   /* Return count for word, if it exists */
   WordCount *curr = wchead;
   while(curr != NULL) {
-    if(strcmp(curr -> word, word) == 0) {
+    if(curr->word != NULL && strcmp(curr->word, word) == 0) {
       return curr;
     }
-    curr = curr -> next;
+    curr = curr->next;
   }
   return NULL;
 }
@@ -77,6 +83,23 @@ int add_word(WordCount **wclist, char *word) {
      Returns 0 if no errors are encountered in the body of this function; 1 otherwise.
   */
   WordCount *curr = *wclist;
+  while(curr != NULL) {
+    if(curr->word != NULL && strcmp(curr->word, word) == 0) {
+      curr->count++;
+      return 0;
+    }
+    curr = curr->next;
+  }
+  WordCount *wc = malloc(sizeof(WordCount));
+  if(wc == NULL) return 1;
+  wc->word = new_string(word);
+  if(wc->word == NULL) {
+    free(wc);
+    return 1;
+  }
+  wc->next = (*wclist)->next;
+  wc->count = 1;
+  (*wclist)->next = wc;
 
   return 0;
 }
@@ -85,6 +108,8 @@ void fprint_words(WordCount *wchead, FILE *ofile) {
   /* print word counts to a file */
   WordCount *wc;
   for (wc = wchead; wc; wc = wc->next) {
-    fprintf(ofile, "%i\t%s\n", wc->count, wc->word);
+    if(wc->word != NULL) {
+      fprintf(ofile, "%i\t%s\n", wc->count, wc->word);
+    }
   }
 }
