@@ -35,16 +35,49 @@
 /*
  * main - handle command line, spawning one thread per file.
  */
+
+
+struct t_args {
+  char *f_name;
+  word_count_list_t *wc;
+};
+
+void *process_file(void *args) {
+  char *f_name = ((struct t_args *) args ) -> f_name;
+  word_count_list_t *word_counts = ((struct t_args *) args) -> wc;
+  FILE *f = fopen(f_name, "r");
+  count_words(word_counts, f);
+
+  free(f_name);
+  free(args);
+  fclose(f);
+  pthread_exit(NULL);
+}
+
 int main(int argc, char* argv[]) {
   /* Create the empty data structure. */
   word_count_list_t word_counts;
   init_words(&word_counts);
 
+  int n_threads = argc - 1;
+  pthread_t threads[n_threads];
+  int rc;
+
   if (argc <= 1) {
     /* Process stdin in a single thread. */
     count_words(&word_counts, stdin);
   } else {
-    /* TODO */
+    for(int i=1; i<argc; i++) {
+      struct t_args* t_args = malloc(sizeof(struct t_args));
+      t_args -> f_name = malloc(strlen(argv[i]) + 1);
+      strcpy(t_args -> f_name, argv[i]);
+      t_args ->wc = &word_counts;
+
+      rc = pthread_create(&threads[i-1], NULL, process_file, (void *) t_args);     
+    }
+    for(int i=0; i<n_threads; i++) {
+      pthread_join(threads[i], NULL);
+    }
   }
 
   /* Output final result of all threads' work. */
@@ -52,3 +85,4 @@ int main(int argc, char* argv[]) {
   fprint_words(&word_counts, stdout);
   return 0;
 }
+
